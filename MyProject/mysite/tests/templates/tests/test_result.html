@@ -28,3 +28,23 @@
 {% else %}
   <p>Нет доступа</p>
 {% endif %}
+{% if submission.duration %}
+    <p>Время прохождения:
+        <strong>
+            {% if submission.duration > 60 %}
+                {{ submission.duration|floatformat:0 }} сек.
+            {% else %}
+                {{ submission.duration|floatformat:1 }} сек.
+            {% endif %}
+        </strong>
+    </p>
+{% endif %}
+<span style="font-style: italic; color: #666;">
+    {% if submission.duration < 15 %}
+        — Темп прохождения значительно выше среднего!
+    {% elif submission.duration < 30 %}
+
+    {% elif submission.duration > 90 %}
+        — Время выполнения превышает среднестатистические показатели
+    {% endif %}
+</span>

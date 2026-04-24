@@ -1,49 +1,36 @@
-<!doctype html>
-<html>
-<head><meta charset="utf-8"><title>{{ test.title }}</title></head>
-<body>
-  <a href="{% url 'tests:list' %}">← к списку</a>
-  <h1>{{ test.title }}</h1>
-  {% if test.description %}<p>{{ test.description }}</p>{% endif %}
+{% extends "base.html" %}
 
-  {% if errors %}
-    <p style="color:red;">Заполни обязательные вопросы, подсвечены ниже.</p>
-  {% endif %}
+{% block content %}
+<a href="{% url 'test_list' %}">← к списку</a>
 
-  <form method="post">
+<h1>{{ test.title }}</h1>
+{% if test.description %}<p>{{ test.description }}</p>{% endif %}
+
+<form method="post" action="{% url 'submit_test' test.slug %}">
     {% csrf_token %}
+
     {% for q in questions %}
-      <div style="margin: 16px 0; padding: 12px; border: 1px solid #ddd;">
-        <div>
-          <b>{{ forloop.counter }}.</b> {{ q.text }}
-          {% if q.is_required %}<span style="color:red;">*</span>{% endif %}
-        </div>
+    <div style="margin-bottom: 2rem; border-bottom: 1px solid #eee; padding-bottom: 1rem;">
+        <h3>{{ q.text }}</h3>
 
         {% if q.id in errors %}
-          <div style="color:red;">Нужно выбрать вариант</div>
+            <p style="color: red; font-weight: bold;">Пожалуйста, ответьте на этот вопрос.</p>
         {% endif %}
 
-        <div style="margin-top: 8px;">
-          {% for opt in q.options.all %}
-            <label style="display:block; margin:4px 0;">
-              <input type="radio" name="q_{{ q.id }}" value="{{ opt.id }}">
-              {{ opt.text }}
-            </label>
-          {% endfor %}
+        <div class="options">
+        {% for option in q.options.all %}
+            <div style="margin: 0.5rem 0;">
+                <input type="radio" name="q_{{ q.id }}" value="{{ option.id }}" id="opt_{{ option.id }}"
+                       {% if q.selected_option_id == option.id|stringformat:"s" %}checked{% endif %}>
+                <label for="opt_{{ option.id }}">{{ option.text }}</label>
+            </div>
+        {% endfor %}
         </div>
-      </div>
+    </div>
     {% endfor %}
 
-    <button type="submit">Показать результат</button>
-  </form>
-</body>
-</html>
-{% if request.user.is_authenticated %}
-  <form method="post">
-    {% csrf_token %}
-    ...
-    <button type="submit">Показать результат</button>
-  </form>
-{% else %}
-  <p>Войдите, чтобы пройти тест</p>
-{% endif %}
+    <div style="margin-top: 2rem;">
+        <button type="submit" style="padding: 10px 20px; cursor: pointer;">Завершить тест</button>
+    </div>
+</form>
+{% endblock %}

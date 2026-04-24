@@ -31,21 +31,21 @@ class Question(models.Model):
 
     class Meta:
         ordering = ["order"]
-        unique_together = ("test", "order")
+        # unique_together = ("test", "order")
 
     def __str__(self):
         return f"{self.test.title} — Q{self.order + 1}"
 
 
 class AnswerOption(models.Model):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="options")
     text = models.CharField(max_length=255)
     score = models.IntegerField(default=0)
     order = models.PositiveIntegerField()
 
     class Meta:
         ordering = ["order"]
-        unique_together = ("question", "order")
+        # unique_together = ("question", "order")
 
     def __str__(self):
         return f"Option({self.question.id}): {self.text[:40]}"
@@ -53,16 +53,30 @@ class AnswerOption(models.Model):
 
 class Submission(models.Model):
     """
-    Прохождение теста (попытка). Пока без авторизации — просто session_key.
-    Потом можно добавить FK на User.
+    Прохождение теста (попытка).
     """
+    user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="submissions"
+    )
     test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name="submissions")
-    session_key = models.CharField(max_length=40, blank=True, db_index=True)  # request.session.session_key
+    session_key = models.CharField(max_length=40, blank=True, db_index=True)
     total_score = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Submission #{self.id} — {self.test.title}"
+
+    @property
+    def duration(self):
+        """Возвращает длительность выполнения теста в секундах."""
+        if self.finished_at and self.created_at:
+            return (self.finished_at - self.created_at).total_seconds()
+        return None
 
 
 class SubmissionAnswer(models.Model):
@@ -95,6 +109,4 @@ class ResultRange(models.Model):
         ordering = ["order", "min_score", "id"]
 
     def __str__(self):
-        return f"{self.test.title}: {self.min_score}-{self.max_score} — {self.title}"
-
-
+        return f"{self.test.title}: {self.min_score}-{self.max_score} - {self.title}"

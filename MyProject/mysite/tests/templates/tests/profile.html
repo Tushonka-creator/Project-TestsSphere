@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Личный кабинет</h1>
+<p>Добро пожаловать, <strong>{{ user.username }}</strong>!</p>
+
+<hr>
+
+<h2>История ваших тестов</h2>
+{% if submissions %}
+    <table border="1" cellpadding="10" style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+        <thead>
+            <tr style="background-color: #f2f2f2;">
+                <th>Дата</th>
+                <th>Тест</th>
+                <th>Результат</th>
+                <th>Затраченное время</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in submissions %}
+            <tr>
+                <td>{{ sub.created_at|date:"d.m.Y H:i" }}</td>
+                <td>{{ sub.test.title }}</td>
+                <td><strong>{{ sub.total_score }}</strong> баллов</td>
+                <td>
+                    {% if sub.duration %}
+                        {{ sub.duration|floatformat:1 }} сек.
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'test_result' sub.pk %}">Просмотр</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Вы еще не прошли ни одного теста.</p>
+    <p><a href="{% url 'test_list' %}">Посмотреть доступные тесты</a></p>
+{% endif %}
+
+<p style="margin-top: 3rem;">
+    <a href="{% url 'logout' %}" style="color: red;">Выйти из аккаунта</a>
+</p>
+{% endblock %}

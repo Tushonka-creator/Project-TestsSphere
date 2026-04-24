@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import Dict, List
-
 from django.db import transaction
-
 from ..models import AnswerOption, Submission, SubmissionAnswer
 from ..services.scoring import ScoreCalculator
 
@@ -18,6 +16,9 @@ class SubmissionService:
         self.score_calculator = score_calculator or ScoreCalculator()
 
     def parse_answers(self, questions, post_data) -> SubmissionValidationResult:
+        """
+        Разбирает POST-данные и проверяет обязательные вопросы.
+        """
         chosen: Dict[int, str] = {}
         errors: set[int] = set()
 
@@ -35,11 +36,18 @@ class SubmissionService:
         return SubmissionValidationResult(chosen=chosen, errors=errors)
 
     @transaction.atomic
-    def create_submission(self, test, session_key: str, questions, chosen_answers: Dict[int, str]):
+    def create_submission(self, test, session_key: str, questions, chosen_answers: Dict[int, str], user=None):
+        """
+        Атомарно создает Submission и его ответы, рассчитывая итоговый балл.
+        """
+        from django.utils import timezone
+
         submission = Submission.objects.create(
             test=test,
+            user=user if user and user.is_authenticated else None,
             session_key=session_key,
             total_score=0,
+            finished_at=timezone.now()
         )
 
         options_map = {
@@ -57,7 +65,11 @@ class SubmissionService:
             if not option_id:
                 continue
 
-            option = options_map.get(int(option_id))
+            try:
+                option = options_map.get(int(option_id))
+            except (ValueError, TypeError):
+                continue
+
             if not option:
                 continue
 
@@ -73,9 +85,11 @@ class SubmissionService:
                 )
             )
 
-        total_score = self.score_calculator.calculate(selected_options)
-
         SubmissionAnswer.objects.bulk_create(answers_to_create)
+
+        # Вычисляем длительность для передачи в калькулятор
+        duration = (submission.finished_at - submission.created_at).total_seconds()
+        total_score = self.score_calculator.calculate(selected_options, duration=duration)
 
         submission.total_score = total_score
         submission.save(update_fields=["total_score"])
