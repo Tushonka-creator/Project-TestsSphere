@@ -3,10 +3,6 @@ import base64
 import os
 
 class Magma:
-    """
-    Реализация блочного шифра «Магма» (ГОСТ Р 34.12-2015).
-    """
-    # Стандартные S-блоки (узлы замены) ГОСТ Р 34.12-2015
     S_BOX = (
         (12, 4, 6, 2, 10, 5, 11, 9, 14, 8, 13, 7, 0, 3, 15, 1),
         (6, 8, 2, 3, 9, 10, 5, 12, 1, 14, 4, 7, 11, 13, 0, 15),
@@ -24,8 +20,7 @@ class Magma:
         """
         if len(key) != 32:
             raise ValueError("Ключ должен быть длиной 32 байта (256 бит)")
-        
-        # Разворачиваем ключ в 8 подключей по 32 бита
+
         self.keys = struct.unpack("<8I", key)
 
     def _f(self, part, key):
@@ -35,16 +30,12 @@ class Magma:
             # Замена по S-блокам
             nibble = (temp >> (4 * i)) & 0x0F
             substituted |= (self.S_BOX[i][nibble] << (4 * i))
-        # Циклический сдвиг влево на 11 бит
         return ((substituted << 11) | (substituted >> (32 - 11))) & 0xFFFFFFFF
 
     def encrypt_block(self, block):
-        """Шифрование одного 64-битного блока"""
         left, right = struct.unpack(">2I", block)
-        
-        # 32 раунда сети Фейстеля
+
         for i in range(32):
-            # Индекс подключа
             if i < 24:
                 k = self.keys[i % 8]
             else:
@@ -53,12 +44,10 @@ class Magma:
             new_right = left ^ self._f(right, k)
             left = right
             right = new_right
-            
-        # Финальная перестановка (в Магме это просто смена местами)
+
         return struct.pack(">2I", right, left)
 
     def decrypt_block(self, block):
-        """Дешифрование одного 64-битного блока"""
         left, right = struct.unpack(">2I", block)
         
         for i in range(32):
@@ -74,33 +63,22 @@ class Magma:
         return struct.pack(">2I", right, left)
 
 class MagmaCTR:
-    """
-    Режим счетчика (CTR) для работы с данными любой длины.
-    Превращает блочный шифр в потоковый.
-    """
     def __init__(self, key):
         self.magma = Magma(key)
 
     def process(self, data, iv):
-        """
-        Шифрование/Дешифрование данных (операция симметрична в режиме CTR).
-        iv: 8 байт (nonce)
-        """
         result = bytearray()
         counter = struct.unpack(">Q", iv)[0]
         
         for i in range(0, len(data), 8):
-            # Шифруем счетчик
             keystream_block = self.magma.encrypt_block(struct.pack(">Q", counter + (i // 8)))
             
-            # XOR данных с гаммой
             chunk = data[i:i+8]
             for j in range(len(chunk)):
                 result.append(chunk[j] ^ keystream_block[j])
                 
         return bytes(result)
 
-# Утилиты для удобного использования в Django
 MASTER_KEY = os.environ.get("MAGMA_SECRET_KEY", "static_key_for_dev_32bytes_long!!").encode()[:32].ljust(32, b'\0')
 
 def encrypt_text(text):
@@ -108,7 +86,6 @@ def encrypt_text(text):
     iv = os.urandom(8)
     ctr = MagmaCTR(MASTER_KEY)
     encrypted = ctr.process(text.encode('utf-8'), iv)
-    # Сохраняем IV + Данные в base64
     return base64.b64encode(iv + encrypted).decode('utf-8')
 
 def decrypt_text(encrypted_base64):

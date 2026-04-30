@@ -1,60 +1,93 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Личный кабинет</h1>
-<div style="background: #fff3cd; padding: 10px; margin-bottom: 10px; border: 1px solid #ffeeba;">
-    <strong>Диагностика:</strong> Если вы не видите свои тесты, пожалуйста, перейдите <a href="{% url 'tests:debug_submissions' %}">на эту страницу</a> и отправьте скриншот или скопируйте текст оттуда.
+<div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div>
+        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Личный кабинет</h1>
+        <p class="mt-2 text-slate-500 font-medium">Добро пожаловать в TestSphere, <span class="text-blue-600 font-bold underline decoration-blue-200 underline-offset-4">{{ user.username }}</span></p>
+    </div>
+
+    <div class="flex items-center gap-3">
+        <a href="{% url 'tests:debug_submissions' %}" class="inline-flex items-center px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors border border-slate-200">
+            <svg class="w-4 h-4 mr-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Диагностика системы
+        </a>
+    </div>
 </div>
-<p>Добро пожаловать, <strong>{{ user.username }}</strong>!</p>
 
-<hr>
+<div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mb-12">
+    <div class="px-8 py-6 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+        <h2 class="text-lg font-bold text-slate-800">История ваших тестов</h2>
+        {% if debug_count > 0 %}
+        <span class="px-2 py-1 bg-blue-100 text-blue-700 text-[10px] uppercase font-black tracking-widest rounded">Всего: {{ debug_count }}</span>
+        {% endif %}
+    </div>
 
-<h2>История ваших тестов</h2>
-{% if debug_count > 0 or submissions %}
-    <!-- Найдено результатов: {{ debug_count }} -->
-    <table border="1" cellpadding="10" style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
-        <thead>
-            <tr style="background-color: #f2f2f2;">
-                <th>Дата</th>
-                <th>Тест</th>
-                <th>Результат</th>
-                <th>Затраченное время</th>
-                <th>Действия</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for sub in submissions %}
-            <tr>
-                <td>{{ sub.created_at|date:"d.m.Y H:i" }}</td>
-                <td>{{ sub.test.title }}</td>
-                <td>
-                    <strong>{{ sub.total_score }}</strong> баллов
-                    {% if sub.magma_sealed_data %}
-                        <div style="font-size: 0.8rem; color: #666; font-style: italic; margin-top: 4px; border-left: 2px solid #007bff; padding-left: 5px;">
-                            <span title="Расшифровано алгоритмом Магма">🔒 Magma Report:</span> {{ sub.magma_sealed_data }}
+    {% if submissions %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-400 font-bold border-b border-slate-100">
+                    <th class="px-8 py-4">Дата</th>
+                    <th class="px-8 py-4">Тест</th>
+                    <th class="px-8 py-4">Результат</th>
+                    <th class="px-8 py-4">Параметры</th>
+                    <th class="px-8 py-4 text-right">Действия</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                {% for sub in submissions %}
+                <tr class="hover:bg-blue-50/30 transition-colors group">
+                    <td class="px-8 py-6 whitespace-nowrap">
+                        <span class="text-sm font-medium text-slate-500">{{ sub.created_at|date:"d.m.Y" }}</span>
+                        <span class="block text-[10px] text-slate-400 font-mono">{{ sub.created_at|date:"H:i" }}</span>
+                    </td>
+                    <td class="px-8 py-6">
+                        <span class="text-sm font-bold text-slate-800 group-hover:text-blue-700 transition-colors">{{ sub.test.title }}</span>
+                    </td>
+                    <td class="px-8 py-6">
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-lg font-black text-slate-900 leading-none">{{ sub.total_score }}</span>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">баллов</span>
                         </div>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if sub.duration %}
-                        {{ sub.duration|floatformat:1 }} сек.
-                    {% else %}
-                        —
-                    {% endif %}
-                </td>
-                <td>
-                    <a href="{% url 'tests:test_result' sub.pk %}">Просмотр</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-{% else %}
-    <p>Вы еще не прошли ни одного теста.</p>
-    <p><a href="{% url 'tests:test_list' %}">Посмотреть доступные тесты</a></p>
-{% endif %}
-
-<p style="margin-top: 3rem;">
-    <a href="{% url 'logout' %}" style="color: red;">Выйти из аккаунта</a>
-</p>
+                        {% if sub.magma_sealed_data %}
+                            <div class="mt-2 flex items-center gap-2 px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-md max-w-[240px]">
+                                <div class="flex-shrink-0 animate-pulse">
+                                    <svg class="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+                                </div>
+                                <span class="text-[10px] font-medium text-slate-600 truncate italic" title="{{ sub.magma_sealed_data }}">
+                                    {{ sub.magma_sealed_data }}
+                                </span>
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td class="px-8 py-6 whitespace-nowrap">
+                        <div class="space-y-1">
+                            <div class="flex items-center text-[10px] text-slate-500">
+                                <svg class="w-3 h-3 mr-1 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                {% if sub.duration %}{{ sub.duration|floatformat:1 }} сек.{% else %}—{% endif %}
+                            </div>
+                            <div class="flex items-center text-[10px] text-slate-500">
+                                <svg class="w-3 h-3 mr-1 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                                GOST 34.12
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6 text-right">
+                        <a href="{% url 'tests:test_result' sub.pk %}" class="inline-flex items-center justify-center p-2 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-all shadow-sm active:scale-90">
+                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="p-12 text-center text-slate-500">
+        <p class="text-lg">Вы еще не прошли ни одного теста.</p>
+        <a href="{% url 'tests:test_list' %}" class="mt-4 inline-block text-blue-600 font-bold hover:underline underline-offset-4">Посмотреть доступные тесты &rarr;</a>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

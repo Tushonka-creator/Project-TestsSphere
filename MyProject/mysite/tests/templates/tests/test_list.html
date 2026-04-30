@@ -1,15 +1,45 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Тесты</h1>
-<ul>
+<div class="mb-12">
+    <h1 class="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl border-l-4 border-blue-600 pl-6">
+        Доступные тесты
+    </h1>
+    <p class="mt-4 text-lg text-slate-600 max-w-2xl">
+        Выберите подходящую категорию и проверьте свои знания. Все данные защищены по стандарту ГОСТ Р 34.12-2015.
+    </p>
+</div>
+
+<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
     {% for t in tests %}
-    <li>
-        <a href="{% url 'tests:test_detail' t.slug %}">{{ t.title }}</a>
-        {% if t.description %}<p>{{ t.description }}</p>{% endif %}
-    </li>
+    <div class="group relative bg-white border border-slate-200 rounded-2xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <svg class="w-12 h-12 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+            </svg>
+        </div>
+        <h3 class="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+            {{ t.title }}
+        </h3>
+        {% if t.description %}
+            <p class="mt-3 text-slate-600 leading-relaxed">
+                {{ t.description|truncatewords:20 }}
+            </p>
+        {% endif %}
+        <div class="mt-8 flex items-center justify-between">
+            <a href="{% url 'tests:test_detail' t.slug %}" class="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
+                Пройти тест
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                </svg>
+            </a>
+            <span class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">ID: {{ t.id|stringformat:"03d" }}</span>
+        </div>
+    </div>
     {% empty %}
-    <li>Пока нет опубликованных тестов</li>
+    <div class="col-span-full py-20 text-center bg-white border-2 border-dashed border-slate-200 rounded-2xl">
+        <p class="text-slate-500 font-medium">Пока нет опубликованных тестов. Загляните позже!</p>
+    </div>
     {% endfor %}
-</ul>
+</div>
 {% endblock %}

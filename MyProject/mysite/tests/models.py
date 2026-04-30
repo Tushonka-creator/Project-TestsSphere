@@ -3,9 +3,6 @@ from .fields import EncryptedCharField
 
 
 class Test(models.Model):
-    """
-    Тест: "Дальтонизм", "Аутизм", и т.д.
-    """
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=220, unique=True)
     description = models.TextField(blank=True)
@@ -46,16 +43,11 @@ class AnswerOption(models.Model):
 
     class Meta:
         ordering = ["order"]
-        # unique_together = ("question", "order")
-
     def __str__(self):
         return f"Option({self.question.id}): {self.text[:40]}"
 
 
 class Submission(models.Model):
-    """
-    Прохождение теста (попытка).
-    """
     user = models.ForeignKey(
         "auth.User",
         on_delete=models.SET_NULL,
@@ -75,17 +67,13 @@ class Submission(models.Model):
 
     @property
     def duration(self):
-        """Возвращает длительность выполнения теста в секундах."""
         if self.finished_at and self.created_at:
             return (self.finished_at - self.created_at).total_seconds()
         return None
 
 
 class SubmissionAnswer(models.Model):
-    """
-    Ответы пользователя: какой вариант выбрал для каждого вопроса.
-    unique_together гарантирует 1 ответ на 1 вопрос в рамках попытки.
-    """
+
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name="answers")
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     option = models.ForeignKey(AnswerOption, on_delete=models.PROTECT)

@@ -4,7 +4,7 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "change-me")
-DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"  # Set default to True for dev here
+DEBUG = os.getenv("DJANGO_DEBUG", "True") == "False"  # Set default to True for dev here
 
 ALLOWED_HOSTS = ["*"]  # Allow all hosts for the dev environment
 CSRF_TRUSTED_ORIGINS = ["https://*.run.app", "https://*.google.com"]

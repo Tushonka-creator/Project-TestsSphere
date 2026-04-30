@@ -16,9 +16,6 @@ class SubmissionService:
         self.score_calculator = score_calculator or ScoreCalculator()
 
     def parse_answers(self, questions, post_data) -> SubmissionValidationResult:
-        """
-        Разбирает POST-данные и проверяет обязательные вопросы.
-        """
         chosen: Dict[int, str] = {}
         errors: set[int] = set()
 
@@ -38,17 +35,11 @@ class SubmissionService:
     @transaction.atomic
     def create_submission(self, test, session_key: str, questions, chosen_answers: Dict[int, str], user=None,
                           duration=None):
-        """
-        Атомарно создает Submission и его ответы, рассчитывая итоговый балл.
-        """
         from django.utils import timezone
         import datetime
 
         finished_at = timezone.now()
 
-        # Если длительность передана извне (из фронтенда), мы можем "отматать" созданый_at назад
-        # или просто сохранить duration. В текущей модели нет поля duration, оно рассчитывается.
-        # Поэтому мы подкорректируем created_at если нужно, или просто используем переданный duration для расчета баллов.
 
         submission = Submission.objects.create(
             test=test,
@@ -58,10 +49,8 @@ class SubmissionService:
             finished_at=finished_at
         )
 
-        # Если мы хотим чтобы submission.duration возвращал правдивое значение:
+
         if duration is not None:
-            # Т.к. created_at имеет auto_now_add=True, обычный save() может его игнорировать.
-            # Используем update() для прямой записи в БД.
             new_created_at = finished_at - datetime.timedelta(seconds=duration)
             Submission.objects.filter(pk=submission.pk).update(created_at=new_created_at)
             submission.created_at = new_created_at
@@ -103,13 +92,11 @@ class SubmissionService:
 
         SubmissionAnswer.objects.bulk_create(answers_to_create)
 
-        # Вычисляем длительность для передачи в калькулятор
         duration = (submission.finished_at - submission.created_at).total_seconds()
         total_score = self.score_calculator.calculate(selected_options, duration=duration)
 
         submission.total_score = total_score
 
-        # Использование шифрования "Магма" для отчета
         from django.utils import timezone
         summary = f"Score: {total_score} recorded at {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}"
         submission.magma_sealed_data = summary

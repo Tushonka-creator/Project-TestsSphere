@@ -1,11 +1,87 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Регистрация</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Зарегистрироваться</button>
-</form>
-<p>Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a></p>
+<div class="max-w-md mx-auto py-12">
+    <div class="bg-white border border-slate-200 rounded-3xl p-10 shadow-xl shadow-slate-200/50">
+        <div class="mb-8 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+            </div>
+            <h1 class="text-3xl font-black text-slate-900 tracking-tight">Регистрация</h1>
+            <p class="mt-2 text-slate-500 font-medium">Создайте аккаунт в TestSphere</p>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm font-medium">
+                <p class="font-bold mb-2">Обнаружены ошибки:</p>
+                <ul class="list-disc list-inside space-y-1">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ field.label }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div class="space-y-4">
+                {% for field in form %}
+                <div class="space-y-1">
+                    <label for="{{ field.id_for_label }}" class="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1">
+                        {{ field.label }}
+                    </label>
+                    <div class="relative">
+                        <input type="{{ field.field.widget.input_type|default:'text' }}"
+                               name="{{ field.name }}"
+                               id="{{ field.id_for_label }}"
+                               class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all"
+                               required>
+                        {% if "password" in field.name.lower %}
+                        <button type="button" onclick="togglePassword('{{ field.id_for_label }}')" class="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-blue-600 transition-colors">
+                            <svg id="eye-{{ field.id_for_label }}" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% if field.help_text %}
+                        <p class="text-[10px] text-slate-400 pl-1">{{ field.help_text|safe }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <script>
+                function togglePassword(id) {
+                    const input = document.getElementById(id);
+                    const eye = document.getElementById('eye-' + id);
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        eye.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />';
+                    } else {
+                        input.type = 'password';
+                        eye.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+                    }
+                }
+            </script>
+
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-xl shadow-lg shadow-blue-100 transition-all active:scale-95">
+                Создать аккаунт
+            </button>
+        </form>
+
+        <div class="mt-10 pt-8 border-t border-slate-100 text-center">
+            <p class="text-slate-500 text-sm">Уже есть аккаунт?
+                <a href="{% url 'login' %}" class="text-blue-600 font-bold hover:underline underline-offset-4 ml-1">Войти</a>
+            </p>
+        </div>
+    </div>
+</div>
 {% endblock %}

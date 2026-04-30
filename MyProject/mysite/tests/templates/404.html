@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}404 - Страница не найдена | TestSphere{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
+    <div class="relative mb-8">
+        <h1 class="text-[12rem] font-black text-slate-100 select-none leading-none">404</h1>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <div class="w-24 h-24 bg-blue-600 rounded-3xl rotate-12 flex items-center justify-center shadow-2xl shadow-blue-200">
+                <svg class="w-12 h-12 text-white -rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+        </div>
+    </div>
+    
+    <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Упс! Страница потерялась</h2>
+    <p class="mt-4 text-slate-500 max-w-md mx-auto leading-relaxed">
+        Похоже, вы перешли по неверной ссылке или страница была перемещена в зашифрованный архив Magma.
+    </p>
+    
+    <div class="mt-10 flex flex-col sm:flex-row items-center gap-4">
+        <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl transition-all active:scale-95 shadow-lg shadow-blue-100">
+            Вернуться на главную
+        </a>
+        <a href="javascript:history.back()" class="text-slate-500 font-bold py-3 px-8 hover:text-slate-900 transition-colors">
+            Вернуться назад
+        </a>
+    </div>
+    
+    <div class="mt-16 pt-8 border-t border-slate-100 w-full max-w-xs grayscale opacity-30">
+        <span class="text-[10px] font-mono tracking-widest uppercase">System Error Code: 0x404NF</span>
+    </div>
+</div>
+{% endblock %}

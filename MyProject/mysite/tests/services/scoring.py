@@ -1,9 +1,5 @@
 class ScoreCalculator:
     def calculate(self, options, duration=None, **kwargs):
-        """
-        Принимает список объектов AnswerOption и необязательную длительность.
-        Возвращает сумму баллов с возможным бонусом за скорость.
-        """
         base_score = sum(option.score for option in options)
 
         # Бонус за скорость: если тест пройден быстрее чем за 30 секунд,

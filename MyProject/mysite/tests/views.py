@@ -36,18 +36,14 @@ class TestDetailView(DetailView):
 def submit_test(request, slug):
     from .models import Submission
     test = get_published_test_by_slug(slug)
-    # Преобразуем в список, чтобы привязывать временные атрибуты
     questions = list(get_test_questions_with_options(test))
 
-    # Убедимся, что сессия создана и ключ получен
     if not request.session.session_key:
         request.session.save()
 
-    # Сохраняем ключ сессии в саму сессию
     if 'original_session_key' not in request.session:
         request.session['original_session_key'] = request.session.session_key
 
-    # Форсируем сохранение сессии чтобы ключ был доступен
     request.session.modified = True
     request.session.save()
 
@@ -57,7 +53,6 @@ def submit_test(request, slug):
         validation = submission_service.parse_answers(questions, request.POST)
 
         if validation.errors:
-            # Если есть ошибки, привязываем выбранные ответы к вопросам для отображения в шаблоне
             for q in questions:
                 q.selected_option_id = validation.chosen.get(q.id)
 
@@ -86,7 +81,6 @@ def submit_test(request, slug):
             duration=duration
         )
 
-        # Сохраняем ID последнего прохождения в сессии для надежной привязки
         if 'submission_ids' not in request.session:
             request.session['submission_ids'] = []
         request.session['submission_ids'].append(submission.id)
@@ -118,7 +112,6 @@ def debug_submissions(request):
 
     output += "<h2>Recent Submissions</h2><table border='1'><tr><th>ID</th><th>Test</th><th>User</th><th>Score</th><th>Magma Decrypted</th><th>Raw (Encrypted)</th></tr>"
     for s in subs:
-        # Получаем сырое значение из БД в обход дешифровки Django
         from django.db import connection
         with connection.cursor() as cursor:
             cursor.execute("SELECT magma_sealed_data FROM tests_submission WHERE id=%s", [s.id])
@@ -138,23 +131,20 @@ def profile_view(request):
     """
     user = request.user
 
-    # 1. Привязываем по ID из сессии (самый надежный способ)
     submission_ids = request.session.get('submission_ids', [])
     if submission_ids:
         Submission.objects.filter(id__in=submission_ids, user__isnull=True).update(user=user)
 
-    # 2. Привязываем по оригинальному и текущему ключу сессии
     original_session_key = request.session.get('original_session_key')
     current_session_key = request.session.session_key
     keys_to_check = [k for k in [original_session_key, current_session_key] if k]
     if keys_to_check:
         Submission.objects.filter(user__isnull=True, session_key__in=keys_to_check).update(user=user)
 
-    # Получаем все тесты пользователя через обратную связь (уже проверено в дебаге, что это работает)
     submissions = user.submissions.all().order_by('-created_at').select_related('test')
 
     return render(request, 'tests/profile.html', {
-        'submissions': list(submissions),  # Принудительное вычисление списка
+        'submissions': list(submissions),
         'debug_count': submissions.count()
     })
 
@@ -175,8 +165,7 @@ def test_result(request, pk):
     from .models import Submission
     submission = get_object_or_404(Submission, pk=pk)
 
-    # Если пользователь авторизован, но тест был пройден анонимно (например, до логина в этой же сессии),
-    # привязываем его сейчас.
+
     if request.user.is_authenticated and submission.user is None:
         original_session_key = request.session.get('original_session_key')
         current_session_key = request.session.session_key
@@ -196,14 +185,8 @@ def test_result(request, pk):
 
 
 def test_list(request, *args, **kwargs):
-    """
-    Fallback function view for compatibility with older urls.py versions.
-    """
     return TestListView.as_view()(request, *args, **kwargs)
 
 
 def test_detail(request, *args, **kwargs):
-    """
-    Fallback function view for compatibility with older urls.py versions.
-    """
     return TestDetailView.as_view()(request, *args, **kwargs)

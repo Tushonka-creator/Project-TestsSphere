@@ -2,32 +2,62 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}TestSphere{% endblock %}</title>
-    <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
-        nav { margin-bottom: 2rem; border-bottom: 1px solid #eee; padding-bottom: 1rem; }
-        footer { margin-top: 4rem; text-align: center; color: #999; font-size: 0.8rem; }
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style type="text/tailwindcss">
+        @theme {
+            --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+            --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+            --color-brand: #0070f3;
+        }
+        body { @apply bg-slate-50 text-slate-900 font-sans antialiased; }
     </style>
 </head>
-<body>
-    <nav>
-        <a href="/">ГЛАВНАЯ</a>
-        {% if user.is_authenticated %}
-            | <a href="{% url 'tests:profile' %}">ПРОФИЛЬ ({{ user.username }})</a>
-            | <form action="{% url 'logout' %}" method="post" style="display: inline;">
-                {% csrf_token %}
-                <button type="submit" style="background: none; border: none; color: blue; text-decoration: underline; cursor: pointer; padding: 0; font-family: inherit; font-size: inherit;">ВЫЙТИ</button>
-              </form>
-        {% else %}
-            | <a href="{% url 'login' %}">ВОЙТИ</a>
-            | <a href="{% url 'tests:register' %}">РЕГИСТРАЦИЯ</a>
-        {% endif %}
-    </nav>
-    <main>
+<body class="min-h-screen flex flex-col">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <nav class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-8">
+                <a href="/" class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent tracking-tight">
+                    TestSphere
+                </a>
+                <div class="hidden md:flex items-center gap-1">
+                    <a href="/" class="px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">Главная</a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'tests:profile' %}" class="px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">Профиль</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                {% if user.is_authenticated %}
+                    <span class="text-sm text-slate-500 hidden sm:inline">{{ user.username }}</span>
+                    <form action="{% url 'logout' %}" method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700 transition-colors">Выйти</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">Войти</a>
+                    <a href="{% url 'tests:register' %}" class="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-700 transition-all shadow-md active:scale-95">Регистрация</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto w-full px-4 py-12">
         {% block content %}{% endblock %}
     </main>
-    <footer>
-        &copy; 2026 TestSphere
+
+    <footer class="border-t border-slate-200 py-12 bg-white">
+        <div class="max-w-5xl mx-auto px-4 text-center">
+            <p class="text-slate-400 text-sm">&copy; 2026 TestSphere &bull; Secure Testing Platform</p>
+            <div class="mt-2 flex justify-center gap-4 grayscale opacity-50">
+               <span class="text-[10px] font-mono tracking-widest uppercase">Magma Encrypted</span>
+               <span class="text-[10px] font-mono tracking-widest uppercase">Django Powered</span>
+            </div>
+        </div>
     </footer>
 </body>
 </html>
