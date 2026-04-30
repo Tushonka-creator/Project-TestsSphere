@@ -1,29 +1,15 @@
-<!doctype html>
-<html>
-<head><meta charset="utf-8"><title>Тесты</title></head>
-<body>
-  <h1>Тесты</h1>
-  <ul>
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Тесты</h1>
+<ul>
     {% for t in tests %}
-      <li>
-        <a href="{% url 'tests:detail' slug=t.slug %}">{{ t.title }}</a>
-        {% if t.description %}<div>{{ t.description }}</div>{% endif %}
-      </li>
+    <li>
+        <a href="{% url 'tests:test_detail' t.slug %}">{{ t.title }}</a>
+        {% if t.description %}<p>{{ t.description }}</p>{% endif %}
+    </li>
     {% empty %}
-      <li>Пока нет опубликованных тестов</li>
+    <li>Пока нет опубликованных тестов</li>
     {% endfor %}
-  </ul>
-</body>
-</html>
-{% if request.user.is_authenticated %}
-  <ul>
-    {% for t in tests %}
-      <li>
-        <a href="{% url 'tests:detail' slug=t.slug %}">{{ t.title }}</a>
-        {% if t.description %}<div>{{ t.description }}</div>{% endif %}
-      </li>
-    {% endfor %}
-  </ul>
-{% else %}
-  <p>Нужно войти, чтобы видеть тесты</p>
-{% endif %}
+</ul>
+{% endblock %}

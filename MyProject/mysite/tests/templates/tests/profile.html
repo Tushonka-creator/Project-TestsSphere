@@ -2,12 +2,16 @@
 
 {% block content %}
 <h1>Личный кабинет</h1>
+<div style="background: #fff3cd; padding: 10px; margin-bottom: 10px; border: 1px solid #ffeeba;">
+    <strong>Диагностика:</strong> Если вы не видите свои тесты, пожалуйста, перейдите <a href="{% url 'tests:debug_submissions' %}">на эту страницу</a> и отправьте скриншот или скопируйте текст оттуда.
+</div>
 <p>Добро пожаловать, <strong>{{ user.username }}</strong>!</p>
 
 <hr>
 
 <h2>История ваших тестов</h2>
-{% if submissions %}
+{% if debug_count > 0 or submissions %}
+    <!-- Найдено результатов: {{ debug_count }} -->
     <table border="1" cellpadding="10" style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
         <thead>
             <tr style="background-color: #f2f2f2;">
@@ -23,7 +27,14 @@
             <tr>
                 <td>{{ sub.created_at|date:"d.m.Y H:i" }}</td>
                 <td>{{ sub.test.title }}</td>
-                <td><strong>{{ sub.total_score }}</strong> баллов</td>
+                <td>
+                    <strong>{{ sub.total_score }}</strong> баллов
+                    {% if sub.magma_sealed_data %}
+                        <div style="font-size: 0.8rem; color: #666; font-style: italic; margin-top: 4px; border-left: 2px solid #007bff; padding-left: 5px;">
+                            <span title="Расшифровано алгоритмом Магма">🔒 Magma Report:</span> {{ sub.magma_sealed_data }}
+                        </div>
+                    {% endif %}
+                </td>
                 <td>
                     {% if sub.duration %}
                         {{ sub.duration|floatformat:1 }} сек.
@@ -32,7 +43,7 @@
                     {% endif %}
                 </td>
                 <td>
-                    <a href="{% url 'test_result' sub.pk %}">Просмотр</a>
+                    <a href="{% url 'tests:test_result' sub.pk %}">Просмотр</a>
                 </td>
             </tr>
             {% endfor %}
@@ -40,7 +51,7 @@
     </table>
 {% else %}
     <p>Вы еще не прошли ни одного теста.</p>
-    <p><a href="{% url 'test_list' %}">Посмотреть доступные тесты</a></p>
+    <p><a href="{% url 'tests:test_list' %}">Посмотреть доступные тесты</a></p>
 {% endif %}
 
 <p style="margin-top: 3rem;">

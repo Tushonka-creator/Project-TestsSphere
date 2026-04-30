@@ -1,35 +1,13 @@
-<!doctype html>
-<html>
-<head><meta charset="utf-8"><title>Результат — {{ test.title }}</title></head>
-<body>
-  <a href="{% url 'tests:detail' slug=test.slug %}">← пройти ещё раз</a>
-  <h1>Результат: {{ test.title }}</h1>
+{% extends "base.html" %}
 
-  <p><b>Баллы:</b> {{ submission.total_score }}</p>
+{% block content %}
+<a href="{% url 'tests:test_list' %}">← к списку</a>
 
-  <h2>Твои ответы</h2>
-  <ol>
-    {% for a in answers %}
-      <li>
-        <div><b>{{ a.question.text }}</b></div>
-        <div>Ответ: {{ a.option.text }} ({{ a.option.score }} балл/ов)</div>
-      </li>
-    {% empty %}
-      <li>Ответов нет</li>
-    {% endfor %}
-  </ol>
-</body>
-</html>
-{% if request.user.is_authenticated %}
-  <p><b>Баллы:</b> {{ submission.total_score }}</p>
+<h1>Результат: {{ test.title }}</h1>
+<p>Ваш балл: <strong>{{ submission.total_score }}</strong></p>
 
-  <h2>Твои ответы</h2>
-  ...
-{% else %}
-  <p>Нет доступа</p>
-{% endif %}
 {% if submission.duration %}
-    <p>Время прохождения:
+    <p>Время прохождения: 
         <strong>
             {% if submission.duration > 60 %}
                 {{ submission.duration|floatformat:0 }} сек.
@@ -37,14 +15,29 @@
                 {{ submission.duration|floatformat:1 }} сек.
             {% endif %}
         </strong>
+        &nbsp; 
+        <span style="font-style: italic; color: #555;">
+            {% if submission.duration < 15 %}
+                — Темп прохождения значительно выше среднего.
+            {% elif submission.duration > 120 %}
+                — Время выполнения превышает среднестатистические показатели.
+            {% endif %}
+        </span>
     </p>
 {% endif %}
-<span style="font-style: italic; color: #666;">
-    {% if submission.duration < 15 %}
-        — Темп прохождения значительно выше среднего!
-    {% elif submission.duration < 30 %}
 
-    {% elif submission.duration > 90 %}
-        — Время выполнения превышает среднестатистические показатели
-    {% endif %}
-</span>
+{% if result %}
+    <div style="padding: 1rem; border: 1px solid #ccc; background: #f9f9f9; border-radius: 8px;">
+        <h2>{{ result.title }}</h2>
+        <p>{{ result.description }}</p>
+    </div>
+{% else %}
+    <p>К сожалению, не удалось интерпретировать результат.</p>
+{% endif %}
+
+<hr>
+<p>
+    <a href="{% url 'tests:profile' %}">История ваших тестов</a> |
+    <a href="{% url 'tests:test_detail' test.slug %}">Пройти еще раз</a>
+</p>
+{% endblock %}

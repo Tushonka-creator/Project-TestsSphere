@@ -18,7 +18,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'tests.apps.TestsConfig',
+    'tests',
     'axes',
 ]
 
@@ -43,7 +43,7 @@ ROOT_URLCONF = 'mysite.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'tests' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -78,10 +78,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-LOGIN_REDIRECT_URL = 'test_list'
-LOGOUT_REDIRECT_URL = 'test_list'
+LOGIN_REDIRECT_URL = 'tests:profile'
+LOGOUT_REDIRECT_URL = 'tests:test_list'
 
 AXES_FAILURE_LIMIT = 5
-AXES_COOLOFF_TIME = 1
+AXES_COOLOFF_TIME = 840
 AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]
 AXES_RESET_ON_SUCCESS = True

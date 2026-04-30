@@ -1,4 +1,5 @@
 from django.db import models
+from .fields import EncryptedCharField
 
 
 class Test(models.Model):
@@ -65,6 +66,7 @@ class Submission(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name="submissions")
     session_key = models.CharField(max_length=40, blank=True, db_index=True)
     total_score = models.IntegerField(default=0)
+    magma_sealed_data = EncryptedCharField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     finished_at = models.DateTimeField(null=True, blank=True)
 
